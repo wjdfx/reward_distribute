@@ -129,10 +129,13 @@ total_rewards = long(data['blocks_rewards']) + \
                 long(data['fees']) + \
                 long(data['future_blocks_rewards']) + \
                 long(data['future_endorsements_rewards']) + \
-                long(data['gain_from_denounciation']) - \
-                long(data['lost_deposit_from_denounciation']) - \
-                long(data['lost_fees_denounciation']) - \
-                long(data['lost_rewards_denounciation'])
+                long(data['gain_from_denounciation_baking']) - \
+                long(data['lost_deposit_from_denounciation_baking']) - \
+                long(data['lost_rewards_denounciation_baking']) - \
+                long(data['lost_fees_denounciation_baking']) - \
+                long(data['lost_deposit_from_denounciation_endorsement']) - \
+                long(data['lost_rewards_denounciation_endorsement']) - \
+                long(data['lost_fees_denounciation_endorsement'])
 
 # make sure there's actually something to pay out
 if total_rewards <= 0:
