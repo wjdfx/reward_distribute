@@ -262,8 +262,9 @@ if total_payouts > 0:
         server.sendmail(from_addr, [to_addr], msg.as_string())
         server.quit()
 
+print('\n\nPayment will be auto made after 10 sec!')
 time.sleep(10)
 
-os.system("eval `cat ./start-dist.txt`")
+#os.system("eval `cat ./start-dist.txt`")
 
 
