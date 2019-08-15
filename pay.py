@@ -278,27 +278,27 @@ if total_payouts > 0:
         server.sendmail(from_addr, [to_addr], msg.as_string())
         server.quit()
 
-msg = MIMEText('Cycle {}'.format(cycle) + ' Ready Distribute,\n Distribute will be executed after 2 hours, Please confirm that your payment account has balances' + result_txt)
-msg['From'] = _format_addr('alert <%s>' % from_addr)
-msg['To'] = _format_addr('admin <%s>' % to_addr)
-msg['Subject'] = Header('Cycle {}'.format(cycle) + ' Ready Distribute,', 'utf-8').encode()
+# msg = MIMEText('Cycle {}'.format(cycle) + ' Ready Distribute,\n Distribute will be executed after 2 hours, Please confirm that your payment account has balances' + result_txt)
+# msg['From'] = _format_addr('alert <%s>' % from_addr)
+# msg['To'] = _format_addr('admin <%s>' % to_addr)
+# msg['Subject'] = Header('Cycle {}'.format(cycle) + ' Ready Distribute,', 'utf-8').encode()
         
 
-send_mail() # send first mail alert
+# send_mail() # send first mail alert
 
 
 time.sleep(7200)
 os.system("eval `cat ./start-dist.txt`")
 
 
-file_read = open('./start-dist.txt', 'r')
-file_load = file_read.read()
-file_load_str = str(file_load)
-file_load_str_result = file_load_str.replace('sleep 60;','')
+# file_read = open('./start-dist.txt', 'r')
+# file_load = file_read.read()
+# file_load_str = str(file_load)
+# file_load_str_result = file_load_str.replace('sleep 60;','')
 
-msg = MIMEText('Cycle {}'.format(cycle) + ' Distribute Successful,' +  '\n\n' + file_load_str_result)
-msg['From'] = _format_addr('alert <%s>' % from_addr)
-msg['To'] = _format_addr('admin <%s>' % to_addr)
-msg['Subject'] = Header('Cycle {}'.format(cycle) + 'Distribute Successful', 'utf-8').encode()
+# msg = MIMEText('Cycle {}'.format(cycle) + ' Distribute Successful,' +  '\n\n' + file_load_str_result)
+# msg['From'] = _format_addr('alert <%s>' % from_addr)
+# msg['To'] = _format_addr('admin <%s>' % to_addr)
+# msg['Subject'] = Header('Cycle {}'.format(cycle) + 'Distribute Successful', 'utf-8').encode()
     
-send_mail()  # send second mail alert
+# send_mail()  # send second mail alert
