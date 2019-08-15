@@ -7,24 +7,43 @@ import urllib
 import json
 import random
 import sys
+import os
+import time
+from email.mime.text import MIMEText
+import smtplib
+from email import encoders
+from email.header import Header
+from email.mime.text import MIMEText
+from email.utils import parseaddr, formataddr
+from retrying import retry
+
 
 ####################################################################
 # Edit the values below to customize the script for your own needs #
 ####################################################################
 
-baker_address = 'tz1TaLYBeGZD3yKVHQGBM857CcNnFFNceLYh' # the address of the baker
-baker_alias = 'bob' # alias of the baker wallet
+baker_address = 'tz1XXayQohB8XRXN7kMoHbf2NFwNiH3oMRQQ' # the address of the baker
+baker_alias = 'payout' # alias of the baker wallet
 hot_wallet_address = '' # if payouts are made from a non-baker address, enter it here (could be either tz1 or KT1)
 wallet_alias = '' # alias of the hot wallet
-default_fee_percent = 10 # default delegation service fee
+default_fee_percent = 5 # default delegation service fee
 special_addresses = [''] #['KT1...', 'KT1...'] special accounts that get a different fee, set to '' if none
-special_fee_percent = 0 # delegation service fee for special accounts
-tx_fee = 0#0.000001  transaction fee on payouts
+special_fee_percent = 5 # delegation service fee for special accounts
+tx_fee = 0.0015 #0.000001  transaction fee on payouts
 precision = 6 # Tezos supports up to 6 decimal places of precision
+
+
+from_addr = ''
+port=465 # no ssl need change smtplib.SMTP
+password = ''
+to_addr = ''
+smtp_server = ''
 
 #######################################################
 # You shouldn't need to edit anything below this line #
 #######################################################
+    
+
 
 # get a random number to randomize which TzScan API mirror we use
 api_mirror = random.randint(1,5)
@@ -34,7 +53,13 @@ api_url_head = 'https://api{}.tzscan.io/v2/head'.format(api_mirror) # info about
 api_url_rewards = 'http://api{}.tzscan.io/v2/rewards_split/'.format(api_mirror) # info about rewards at specific cycle
 
 # get current cycle info
-response = urllib.urlopen(api_url_head)
+for i in range(5):
+    try:
+        response = urllib.urlopen(api_url_head)
+        break
+    except:
+        time.sleep(2)
+
 data = json.loads(response.read())
 level = int(data['level'])
 cycle = (level - 1) // 4096
@@ -147,6 +172,12 @@ total_payouts = 0
 total_fees = 0
 net_earnings = total_rewards
 
+
+file_empty = open('./start-dist.txt', 'w')
+file_empty.write('')
+file_empty.close()
+
+
 # start a loop to load all pages of results
 while True:
     # calculate and print out payment commands
@@ -182,7 +213,7 @@ while True:
         # convert from mutes (0.000001 XTZ) to XTZ
         payout = round(payout / 1000000, precision)
         # display the payout command to pay this delegator, filtering out any zero-balance payouts
-        if payout >= 0.000001:
+        if payout >= 0.1:
             total_payouts += payout
             paid_delegators += 1
             payout_string = '{0:.6f}'.format(payout) # force tiny values to show all digits
@@ -190,8 +221,13 @@ while True:
                 payout_alias = wallet_alias
             else:
                 payout_alias = baker_alias
-            print ('./tezos-client transfer {} from {} to {} --fee {}'.format(payout_string, payout_alias, delegator_address, tx_fee))
-
+            
+                dist_command = './tezos-client transfer {} from {} to {} --fee {}'.format(payout_string, payout_alias, delegator_address, tx_fee) + ';\n' + 'sleep 60' + ";\n"
+                print (dist_command)
+                f = open('./start-dist.txt', 'a')
+                f.write(dist_command)
+                f.close()
+            
     # load the next page of results if necessary
     if page < pages:
         page += 1
@@ -231,3 +267,38 @@ if total_payouts > 0:
     print ('Total (net) baker earnings: {} ({}% of gross) (that is, {} + {} as fees charged)'.format(net_earnings, share_of_gross, net_earnings - total_fees, total_fees))
 
 
+    def _format_addr(s):
+        name, addr = parseaddr(s)
+        return formataddr((Header(name, 'utf-8').encode(), addr))
+
+    def send_mail():
+        server = smtplib.SMTP_SSL(smtp_server, port)
+        server.set_debuglevel(1)
+        server.login(from_addr, password)
+        server.sendmail(from_addr, [to_addr], msg.as_string())
+        server.quit()
+
+msg = MIMEText('Cycle {}'.format(cycle) + ' Ready Distribute,\n Distribute will be executed after 2 hours, Please confirm that your payment account has balances' + result_txt)
+msg['From'] = _format_addr('alert <%s>' % from_addr)
+msg['To'] = _format_addr('admin <%s>' % to_addr)
+msg['Subject'] = Header('Cycle {}'.format(cycle) + ' Ready Distribute,', 'utf-8').encode()
+        
+
+send_mail() # send first mail alert
+
+
+time.sleep(7200)
+os.system("eval `cat ./start-dist.txt`")
+
+
+file_read = open('./start-dist.txt', 'r')
+file_load = file_read.read()
+file_load_str = str(file_load)
+file_load_str_result = file_load_str.replace('sleep 60;','')
+
+msg = MIMEText('Cycle {}'.format(cycle) + ' Distribute Successful,' +  '\n\n' + file_load_str_result)
+msg['From'] = _format_addr('alert <%s>' % from_addr)
+msg['To'] = _format_addr('admin <%s>' % to_addr)
+msg['Subject'] = Header('Cycle {}'.format(cycle) + 'Distribute Successful', 'utf-8').encode()
+    
+send_mail()  # send second mail alert

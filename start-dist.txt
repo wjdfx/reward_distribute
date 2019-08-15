@@ -1,0 +1,10 @@
+./tezos-client transfer 37.868654 from payout to KT1Ux27WZ39ngedCZLYu6qQ5KcbMWqatDmtf --fee 0.0015;
+sleep 60;
+./tezos-client transfer 21.335245 from payout to KT1SgD2hk4KdSi9GipUCzKM817BgU4eE7pHR --fee 0.0015;
+sleep 60;
+./tezos-client transfer 6.025158 from payout to KT1QZErWLDsCage9GKqzpp5HwbzovLCybuAN --fee 0.0015;
+sleep 60;
+./tezos-client transfer 2.962219 from payout to KT1AdQ8uJbXw9Mh4ahVcCwNGcb6HSsdnx4Rt --fee 0.0015;
+sleep 60;
+./tezos-client transfer 0.732428 from payout to KT1R3BzXedz3bKJaQAk2SPojRJqbTD4Cbqpk --fee 0.0015;
+sleep 60;
