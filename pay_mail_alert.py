@@ -9,6 +9,13 @@ import random
 import sys
 import os
 import time
+from email.mime.text import MIMEText
+import smtplib
+from email import encoders
+from email.header import Header
+from email.mime.text import MIMEText
+from email.utils import parseaddr, formataddr
+from retrying import retry
 
 
 ####################################################################
@@ -25,9 +32,18 @@ special_fee_percent = 5 # delegation service fee for special accounts
 tx_fee = 0.0015 #0.000001  transaction fee on payouts
 precision = 6 # Tezos supports up to 6 decimal places of precision
 
+
+from_addr = ''
+port=465 # no ssl need change smtplib.SMTP
+password = ''
+to_addr = ''
+smtp_server = ''
+
 #######################################################
 # You shouldn't need to edit anything below this line #
 #######################################################
+    
+
 
 # get a random number to randomize which TzScan API mirror we use
 api_mirror = random.randint(1,5)
@@ -262,8 +278,27 @@ if total_payouts > 0:
         server.sendmail(from_addr, [to_addr], msg.as_string())
         server.quit()
 
-time.sleep(10)
+msg = MIMEText('Cycle {}'.format(cycle) + ' Ready Distribute,\n Distribute will be executed after 2 hours, Please confirm that your payment account has balances' + result_txt)
+msg['From'] = _format_addr('alert <%s>' % from_addr)
+msg['To'] = _format_addr('admin <%s>' % to_addr)
+msg['Subject'] = Header('Cycle {}'.format(cycle) + ' Ready Distribute,', 'utf-8').encode()
+        
 
+send_mail() # send first mail alert
+
+
+time.sleep(7200)
 os.system("eval `cat ./start-dist.txt`")
 
 
+file_read = open('./start-dist.txt', 'r')
+file_load = file_read.read()
+file_load_str = str(file_load)
+file_load_str_result = file_load_str.replace('sleep 60;','')
+
+msg = MIMEText('Cycle {}'.format(cycle) + ' Distribute Successful,' +  '\n\n' + file_load_str_result)
+msg['From'] = _format_addr('alert <%s>' % from_addr)
+msg['To'] = _format_addr('admin <%s>' % to_addr)
+msg['Subject'] = Header('Cycle {}'.format(cycle) + 'Distribute Successful', 'utf-8').encode()
+    
+send_mail()  # send second mail alert
