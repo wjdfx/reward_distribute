@@ -158,7 +158,7 @@ net_earnings = total_rewards
 
 
 file_empty = open('./start-dist.txt', 'w')
-file_empty.write('#Stats for cycle {}'.format(cycle) + '\n\n')
+file_empty.write('echo Stats for cycle {}'.format(cycle) + ';\n\n')
 file_empty.close()
 
 
